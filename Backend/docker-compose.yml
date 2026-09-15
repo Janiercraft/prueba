@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: impacto-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-impacto}
+      POSTGRES_USER: ${POSTGRES_USER:-impacto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-impacto}
+    ports:
+      - "5432:5432"
+    volumes:
+      - impacto_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-impacto} -d ${POSTGRES_DB:-impacto}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: .
+    container_name: impacto-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-impacto}
+      DB_USERNAME: ${POSTGRES_USER:-impacto}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-impacto}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-to-a-random-value-at-least-32-characters-long}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      STORAGE_PATH: /app/storage
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - impacto_storage:/app/storage
+volumes:
+  impacto_pgdata:
+  impacto_storage:
