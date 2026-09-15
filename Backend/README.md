@@ -4,7 +4,7 @@ Backend REST profesional para una fundación que necesita trazabilidad de famili
 
 ## Stack
 
-Java 21, Spring Boot 3.5.16, Maven, PostgreSQL, Spring Data JPA/Hibernate, Spring Security + JWT, Bean Validation, Flyway, MapStruct, JUnit 5, Mockito, Testcontainers, Docker, OpenAPI/Swagger y SLF4J/Logback.
+Java 21, Spring Boot 3.5.16, Maven, PostgreSQL, Spring Data JPA/Hibernate, Bean Validation, Flyway, MapStruct, JUnit 5, Mockito, Testcontainers, Docker, OpenAPI/Swagger y SLF4J/Logback. Sin autenticación JWT: la API queda abierta para facilitar el desarrollo y las pruebas.
 
 Spring Boot 3.5.16 requiere al menos Java 17 y es compatible con Java 21.
 
@@ -15,7 +15,7 @@ El proyecto usa un monolito modular con separación `api`, `application`, `domai
 - `api`: controllers, DTOs, mappers y errores HTTP.
 - `application`: casos de uso y reglas transaccionales.
 - `domain`: entidades y enums del negocio.
-- `infrastructure`: persistencia, seguridad JWT y almacenamiento.
+- `infrastructure`: persistencia y almacenamiento.
 - `config`: configuración, OpenAPI y seed de desarrollo.
 
 Las entidades JPA no se exponen directamente: la API trabaja con DTOs.
@@ -24,7 +24,7 @@ Las entidades JPA no se exponen directamente: la API trabaja con DTOs.
 
 Copia `.env.example` como referencia. Variables principales:
 
-`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`, `CORS_ALLOWED_ORIGINS`, `STORAGE_PATH`.
+`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `CORS_ALLOWED_ORIGINS`, `STORAGE_PATH`.
 
 ## Ejecutar localmente
 
@@ -57,8 +57,6 @@ El backend queda en `http://localhost:8080` y PostgreSQL en `localhost:5432`.
 
 OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
-Utiliza el botón Authorize e introduce `Bearer <JWT>`.
-
 ## Usuarios de desarrollo
 
 Sólo al arrancar con perfil `dev` y base vacía se crean usuarios de demostración:
@@ -77,7 +75,6 @@ Las donaciones MONEY se almacenan sin generar inventario físico.
 
 ## API principal
 
-- Auth: `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me`
 - Familias: `/api/v1/families`
 - Niños: `/api/v1/children`
 - Necesidades: `/api/v1/needs`
@@ -106,7 +103,7 @@ Las migraciones están en `src/main/resources/db/migration` y siguen el esquema 
 
 ## Seguridad
 
-JWT stateless, BCrypt, roles `ADMIN`, `VOLUNTEER`, `DONOR`, CORS configurable y CSRF desactivado para la API stateless. Los permisos se determinan en backend, nunca por confianza en IDs del cliente.
+CORS configurable, validación de datos y reglas de negocio. No se aplica autenticación ni autorización HTTP en esta versión; los campos de rol y usuario se conservan como parte del modelo de datos.
 
 ## Decisiones relevantes
 
@@ -120,7 +117,7 @@ JWT stateless, BCrypt, roles `ADMIN`, `VOLUNTEER`, `DONOR`, CORS configurable y 
 
 ## Producción: reforzamientos pendientes
 
-Para un despliegue real conviene usar gestión de secretos (Vault/secret manager), rotación de JWT, observabilidad centralizada, rate limiting, antivirus/validación MIME de archivos, almacenamiento de objetos externo y una política formal de retención de PII. La base implementada es funcional para la hackathon, pero esos controles dependen del entorno real de producción.
+Para un despliegue real conviene añadir autenticación/autorización, gestión de secretos, observabilidad centralizada, rate limiting, antivirus/validación MIME de archivos, almacenamiento de objetos externo y una política formal de retención de PII. La base implementada es funcional para la hackathon, pero esos controles dependen del entorno real de producción.
 
 ## Requisito de Java
 

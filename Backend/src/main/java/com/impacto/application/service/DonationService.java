@@ -14,21 +14,17 @@ public class DonationService {
     private final CampaignRepository campaigns;
     private final ResourceRepository resources;
     private final ResourceCodeService codes;
-    private final CurrentUserService current;
-    public DonationService(DonationRepository r,DonorRepository d,CampaignRepository c,ResourceRepository re,ResourceCodeService co,
-        CurrentUserService cu) {
+    public DonationService(DonationRepository r, DonorRepository d, CampaignRepository c, ResourceRepository re,
+                           ResourceCodeService co) {
         repo=r;
         donors=d;
         campaigns=c;
         resources=re;
         codes=co;
-        current=cu;
     }
     @Transactional
     public DonationResponse create(DonationRequest r) {
         var donor=donors.findById(r.donorId()).orElseThrow(()->new NotFoundException("Donante no encontrado"));
-        if(!isAdmin() && (donor.getUser()==null||!donor.getUser().getId().equals(current
-            .id())))throw new ForbiddenException("Solo puedes registrar donaciones a tu nombre");
         validate(r);
         var d=new Donation();
         d.setDonor(donor);
@@ -54,13 +50,13 @@ public class DonationService {
     }
     public PageResponse<DonationResponse> find(UUID donorId,DonationStatus status,int page,int size) {
         UUID target=donorId;
-        if(!isAdmin())target=donors.findByUserId(current.id()).map(Donor::getId).orElseThrow(()->new NotFoundException("Perfil de donante no encontrado"));
         var p=PageRequest.of(page,Math.min(size,100),Sort.by(Sort.Direction.DESC,"createdAt"));
         Page<Donation> x=target!=null?repo.findByDonorId(target,p):status!=null?repo.findByStatus(status,p):repo.findAll(p);
         return PageResponse.from(x.map(this::to));
     }
-    public com.impacto.api.dto.DonorImpactResponse impact() {
-        UUID id=donors.findByUserId(current.id()).map(Donor::getId).orElseThrow(()->new NotFoundException("Perfil de donante no encontrado"));
+    public com.impacto.api.dto.DonorImpactResponse impact(UUID donorId) {
+        UUID id=donorId;
+        donors.findById(id).orElseThrow(()->new NotFoundException("Donante no encontrado"));
         long total=repo.countByDonorIdAndTypeAndStatus(id,DonationType.MONEY,DonationStatus.RECEIVED)+repo.countByDonorIdAndTypeAndStatus(id,DonationType
             .MATERIAL,DonationStatus.RECEIVED);
         long material=repo.countByDonorIdAndTypeAndStatus(id,DonationType.MATERIAL,DonationStatus.RECEIVED);
@@ -68,8 +64,6 @@ public class DonationService {
     }
     public DonationResponse get(UUID id) {
         var d=repo.findById(id).orElseThrow(()->new NotFoundException("Donación no encontrada"));
-        if(!isAdmin()&&(d.getDonor().getUser()==null||!d.getDonor().getUser().getId().equals(current
-            .id())))throw new ForbiddenException("No puedes consultar esta donación");
         return to(d);
     }
     private void validate(DonationRequest r) {
@@ -83,8 +77,5 @@ public class DonationService {
     private DonationResponse to(Donation d) {
         return new DonationResponse(d.getId(),d.getDonor().getId(),d.getDonor().getName(),d.getCampaign()==null?null:d.getCampaign().getId(),d.getType(),d
             .getAmount(),d.getDescription(),d.getQuantity(),d.getMaterialType(),d.getStatus(),d.getCreatedAt());
-    }
-    private boolean isAdmin() {
-        return current.get().getRole()==Role.ADMIN;
     }
 }

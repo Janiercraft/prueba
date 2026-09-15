@@ -5,17 +5,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.*;
 import java.math.*;
 @Configuration @Profile("dev") public class DevDataInitializer {
     @Bean CommandLineRunner seed(UserRepository users,FamilyRepository families,ChildRepository children,NeedRepository needs,DonorRepository donors,
-        CampaignRepository campaigns,DonationRepository donations,ResourceRepository resources,PasswordEncoder encoder) {
+        CampaignRepository campaigns,DonationRepository donations,ResourceRepository resources) {
         return args-> {
             if(users.count()>0)return;
-            User admin=u(users,encoder,"Admin Demo","admin@impacto.local","Admin123!",Role.ADMIN);
-            User vol=u(users,encoder,"Voluntario Demo","volunteer@impacto.local","Volunteer123!",Role.VOLUNTEER);
-            User donUser=u(users,encoder,"Donante Demo","donor@impacto.local","Donor123!",Role.DONOR);
+            User admin=u(users,"Admin Demo","admin@impacto.local","Admin123!",Role.ADMIN);
+            User vol=u(users,"Voluntario Demo","volunteer@impacto.local","Volunteer123!",Role.VOLUNTEER);
+            User donUser=u(users,"Donante Demo","donor@impacto.local","Donor123!",Role.DONOR);
             Donor donor=new Donor();
             donor.setUser(donUser);
             donor.setName("Donante Demo");
@@ -75,11 +74,11 @@ import java.math.*;
             resources.save(res);
         };
     }
-    private User u(UserRepository r,PasswordEncoder e,String n,String email,String p,Role role) {
+    private User u(UserRepository r,String n,String email,String p,Role role) {
         User u=new User();
         u.setName(n);
         u.setEmail(email);
-        u.setPassword(e.encode(p));
+        u.setPassword(p);
         u.setRole(role);
         return r.save(u);
     }

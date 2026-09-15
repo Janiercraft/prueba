@@ -14,11 +14,9 @@ class DonationServiceTest {
         var c=mock(CampaignRepository.class);
         var r=mock(ResourceRepository.class);
         var codes=mock(ResourceCodeService.class);
-        var current=mock(CurrentUserService.class);
-        var s=new DonationService(d,donors,c,r,codes,current);
+        var s=new DonationService(d,donors,c,r,codes);
         var donor=new Donor();
         donor.setUser(new User());
-        when(current.get()).thenReturn(new User());
         when(donors.findById(any())).thenReturn(Optional.of(donor));
         var req=new DonationRequest(UUID.randomUUID(),null,DonationType.MONEY,BigDecimal.ZERO,null,null,null,DonationStatus.RECEIVED);
         assertThrows(RuntimeException.class,()->s.create(req));

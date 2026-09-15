@@ -1,7 +1,6 @@
 package com.impacto.api.error;
 import com.impacto.application.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.core.AuthenticationException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,9 +23,6 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(ForbiddenException.class) ResponseEntity<ErrorResponse> forbidden(ForbiddenException ex,HttpServletRequest r) {
         return build(HttpStatus.FORBIDDEN,"FORBIDDEN",ex.getMessage(),r.getRequestURI(),List.of());
-    }
-    @ExceptionHandler(AuthenticationException.class) ResponseEntity<ErrorResponse> unauthorized(AuthenticationException ex,HttpServletRequest r) {
-        return build(HttpStatus.UNAUTHORIZED,"UNAUTHORIZED","Credenciales inválidas",r.getRequestURI(),List.of());
     }
     @ExceptionHandler(MethodArgumentNotValidException.class) ResponseEntity<ErrorResponse> validation(MethodArgumentNotValidException ex,
         HttpServletRequest r) {

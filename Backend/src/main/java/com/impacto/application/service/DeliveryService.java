@@ -13,16 +13,14 @@ public class DeliveryService {
     private final DeliveryRepository repo;
     private final AssignmentRepository assignments;
     private final UserRepository users;
-    private final CurrentUserService current;
     private final ResourceRepository resources;
     private final NeedRepository needs;
     private final StorageService storage;
-    public DeliveryService(DeliveryRepository r,AssignmentRepository a,UserRepository u,CurrentUserService c,ResourceRepository re,NeedRepository n,
+    public DeliveryService(DeliveryRepository r,AssignmentRepository a,UserRepository u,ResourceRepository re,NeedRepository n,
         StorageService s) {
         repo=r;
         assignments=a;
         users=u;
-        current=c;
         resources=re;
         needs=n;
         storage=s;
@@ -32,7 +30,6 @@ public class DeliveryService {
         var a=assignments.findById(r.assignmentId()).orElseThrow(()->new NotFoundException("Asignación no encontrada"));
         var v=users.findById(r.volunteerId()).orElseThrow(()->new NotFoundException("Voluntario no encontrado"));
         if(v.getRole()!=Role.VOLUNTEER)throw new ConflictException("El usuario no es VOLUNTEER");
-        if(current.get().getRole()==Role.VOLUNTEER&&!v.getId().equals(current.id()))throw new ForbiddenException("Un voluntario solo puede operar sobre sí mismo");
         if(repo.existsByAssignmentIdAndStatus(a.getId(),DeliveryStatus.COMPLETED))throw new ConflictException("La asignación ya tiene una entrega completada");
         var d=new Delivery();
         d.setAssignment(a);
@@ -44,20 +41,16 @@ public class DeliveryService {
     }
     public PageResponse<DeliveryResponse> find(int page,int size) {
         Pageable p=PageRequest.of(page,Math.min(size,100),Sort.by(Sort.Direction.DESC,"deliveryDate"));
-        Page<Delivery> x=current.get().getRole()==Role.VOLUNTEER?repo.findByVolunteerId(current.id(),p):repo.findAll(p);
+        Page<Delivery> x=repo.findAll(p);
         return PageResponse.from(x.map(this::to));
     }
     public DeliveryResponse get(UUID id) {
         var d=repo.findById(id).orElseThrow(()->new NotFoundException("Entrega no encontrada"));
-        if(current.get().getRole()==Role.VOLUNTEER&&!d.getVolunteer().getId().equals(current
-            .id()))throw new ForbiddenException("No puedes consultar esta entrega");
         return to(d);
     }
     @Transactional
     public DeliveryResponse changeStatus(UUID id,DeliveryStatusRequest r) {
         var d=repo.findById(id).orElseThrow(()->new NotFoundException("Entrega no encontrada"));
-        if(current.get().getRole()==Role.VOLUNTEER&&!d.getVolunteer().getId().equals(current
-            .id()))throw new ForbiddenException("No puedes modificar esta entrega");
         if(!valid(d.getStatus(),r.status()))throw new DomainException("Cambio de estado de entrega no permitido");
         d.setStatus(r.status());
         if(r.status()==DeliveryStatus.COMPLETED)complete(d);
@@ -65,8 +58,6 @@ public class DeliveryService {
     }
     public DeliveryResponse addEvidence(UUID id,org.springframework.web.multipart.MultipartFile file) {
         var d=repo.findById(id).orElseThrow(()->new NotFoundException("Entrega no encontrada"));
-        if(current.get().getRole()==Role.VOLUNTEER&&!d.getVolunteer().getId().equals(current
-            .id()))throw new ForbiddenException("No puedes modificar esta entrega");
         try {
             d.setEvidencePath(storage.store(file));
             return to(repo.save(d));
