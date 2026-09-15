@@ -1,6 +1,6 @@
 package com.impacto;
-import com.impacto.domain.model.User;
-import com.impacto.infrastructure.persistence.UserRepository;
+import com.impacto.entity.User;
+import com.impacto.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
