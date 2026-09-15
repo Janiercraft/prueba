@@ -1,6 +1,6 @@
 package com.impacto.config;
-import com.impacto.domain.model.*;
-import com.impacto.infrastructure.persistence.*;
+import com.impacto.entity.*;
+import com.impacto.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

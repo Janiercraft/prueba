@@ -10,13 +10,18 @@ Spring Boot 3.5.16 requiere al menos Java 17 y es compatible con Java 21.
 
 ## Arquitectura
 
-El proyecto usa un monolito modular con separación `api`, `application`, `domain`, `infrastructure` y `config`.
+El proyecto usa el enfoque tradicional de capas técnicas horizontales. Cada paquete representa una responsabilidad técnica transversal y los módulos de negocio se distribuyen entre estas capas.
 
-- `api`: controllers, DTOs, mappers y errores HTTP.
-- `application`: casos de uso y reglas transaccionales.
-- `domain`: entidades y enums del negocio.
-- `infrastructure`: persistencia y almacenamiento.
-- `config`: configuración, OpenAPI y seed de desarrollo.
+- `controller`: endpoints REST y entrada HTTP.
+- `service`: lógica de negocio, validaciones de reglas y operaciones transaccionales.
+- `repository`: acceso a PostgreSQL mediante Spring Data JPA.
+- `entity`: entidades JPA y enums del dominio persistido.
+- `dto`: objetos de entrada y salida de la API.
+- `exception`: excepciones de negocio y manejo global de errores HTTP.
+- `mapper`: conversión entre entidades y DTOs.
+- `config`: configuración de Spring, OpenAPI, CORS y datos iniciales de desarrollo.
+
+Flujo técnico principal: `Controller → Service → Repository → PostgreSQL`, usando `DTO`, `Entity`, `Mapper` y `Exception Handler` como componentes de apoyo. Las entidades JPA no se exponen directamente: la API trabaja con DTOs.
 
 Las entidades JPA no se exponen directamente: la API trabaja con DTOs.
 
